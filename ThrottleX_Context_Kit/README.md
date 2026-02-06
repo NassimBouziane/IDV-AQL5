@@ -36,13 +36,13 @@ python -m uvicorn throttlex.app:app --reload
 
 ```bash
 # Health check
-curl http://localhost:8000/health
+curl http://localhost:8080/health
 
 # Créer une policy
-curl -X POST http://localhost:8000/policies -H "Content-Type: application/json" -d '{"tenantId":"t1","scope":"TENANT","algorithm":"SLIDING_WINDOW","limit":100,"windowSeconds":60}'
+curl -X POST http://localhost:8080/policies -H "Content-Type: application/json" -d '{"tenantId":"t1","scope":"TENANT","algorithm":"SLIDING_WINDOW","limit":100,"windowSeconds":60}'
 
 # Évaluer une requête
-curl -X POST http://localhost:8000/evaluate -H "Content-Type: application/json" -d '{"tenantId":"t1","route":"/"}'
+curl -X POST http://localhost:8080/evaluate -H "Content-Type: application/json" -d '{"tenantId":"t1","route":"/"}'
 ```
 
 ## 📁 Structure

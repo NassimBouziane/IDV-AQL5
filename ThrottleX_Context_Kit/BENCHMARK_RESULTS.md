@@ -42,11 +42,11 @@
 
 ```bash
 # Benchmark Python
-python benchmark_latency.py --url http://localhost:8000 --requests 1000
-python benchmark_latency.py --url http://localhost:8000 --requests 5000 --concurrent 50
+python benchmark_latency.py --url http://localhost:8080 --requests 1000
+python benchmark_latency.py --url http://localhost:8080 --requests 5000 --concurrent 50
 
 # Benchmark k6
-k6 run throttlex_load_test.js --env BASE_URL=http://localhost:8000
+k6 run throttlex_load_test.js --env BASE_URL=http://localhost:8080
 ```
 
 ---
@@ -284,7 +284,7 @@ export const options = {
 # 1. Démarrer l'environnement
 cd ThrottleX_Context_Kit/src
 docker-compose up -d redis
-uvicorn throttlex.app:app --host 0.0.0.0 --port 8000
+uvicorn throttlex.app:app --host 0.0.0.0 --port 8080
 
 # 2. Benchmark Python mono-client
 python benchmarks/benchmark_latency.py --requests 1000

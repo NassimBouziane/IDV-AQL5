@@ -7,8 +7,8 @@ Measures p50, p95, p99 latency and throughput for:
 - Multi-client (concurrent requests with asyncio)
 
 Usage:
-    python benchmark_latency.py --url http://localhost:8000 --requests 1000
-    python benchmark_latency.py --url http://localhost:8000 --concurrent 50 --requests 5000
+    python benchmark_latency.py --url http://localhost:8080 --requests 1000
+    python benchmark_latency.py --url http://localhost:8080 --concurrent 50 --requests 5000
 """
 
 import argparse
@@ -265,7 +265,7 @@ def print_results(result: BenchmarkResult, title: str) -> None:
 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="ThrottleX Benchmark")
-    parser.add_argument("--url", default="http://localhost:8000", help="ThrottleX URL")
+    parser.add_argument("--url", default="http://localhost:8080", help="ThrottleX URL")
     parser.add_argument("--tenant", default="t-bench-01", help="Tenant ID")
     parser.add_argument("--route", default="/api/benchmark", help="Route to test")
     parser.add_argument("--requests", type=int, default=1000, help="Number of requests")

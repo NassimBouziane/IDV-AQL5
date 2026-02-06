@@ -29,7 +29,7 @@ docker-compose up -d redis
 uvicorn throttlex.app:app --reload
 ```
 
-API disponible sur http://localhost:8000
+API disponible sur http://localhost:8080
 
 ## 5. Lancer les Tests
 

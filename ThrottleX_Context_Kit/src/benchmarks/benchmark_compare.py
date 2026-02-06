@@ -7,10 +7,10 @@ Generates a Markdown report with tables and analysis.
 
 Usage:
     # Run baseline
-    python benchmark_compare.py baseline --url http://localhost:8000
+    python benchmark_compare.py baseline --url http://localhost:8080
 
     # Run optimized version
-    python benchmark_compare.py optimized --url http://localhost:8000
+    python benchmark_compare.py optimized --url http://localhost:8080
 
     # Generate comparison report
     python benchmark_compare.py compare
@@ -209,7 +209,7 @@ async def run_full_benchmark(url: str, tenant: str, requests: int, concurrency: 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="ThrottleX Comparative Benchmark")
     parser.add_argument("command", choices=["baseline", "optimized", "compare"])
-    parser.add_argument("--url", default="http://localhost:8000")
+    parser.add_argument("--url", default="http://localhost:8080")
     parser.add_argument("--tenant", default="t-bench-01")
     parser.add_argument("--requests", type=int, default=500)
     parser.add_argument("--concurrent", type=int, default=50)

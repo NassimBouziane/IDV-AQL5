@@ -3,10 +3,10 @@ import { sleep, check } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
 
 // Configure via env vars:
-// BASE_URL - ThrottleX base URL (default: http://localhost:8000)
+// BASE_URL - ThrottleX base URL (default: http://localhost:8080)
 // TENANTS - comma-separated tenant IDs
 // ROUTE - API route to test
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8000';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const TENANTS = (__ENV.TENANTS || 't-free-01,t-pro-01,t-ent-01').split(',');
 const ROUTE = __ENV.ROUTE || '/api/v1';
 
