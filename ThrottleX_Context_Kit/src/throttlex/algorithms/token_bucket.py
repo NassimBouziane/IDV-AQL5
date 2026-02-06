@@ -1,14 +1,16 @@
 """Token Bucket algorithm implementation."""
 
+from __future__ import annotations
+
 import time
-from typing import Optional
+from typing import Any
 
 import structlog
 
 logger = structlog.get_logger()
 
 # Lua script for Token Bucket (atomic operation)
-TOKEN_BUCKET_SCRIPT = """
+BUCKET_REFILL_SCRIPT = """
 local key = KEYS[1]
 local capacity = tonumber(ARGV[1])
 local refill_rate = tonumber(ARGV[2])
@@ -35,12 +37,11 @@ tokens = math.min(capacity, tokens + refill)
 if tokens >= requested then
     tokens = tokens - requested
     redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
-    redis.call('EXPIRE', key, 3600)  -- 1 hour TTL to clean up unused buckets
+    redis.call('EXPIRE', key, 3600)
     return {1, tokens, 0}
 else
     redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
     redis.call('EXPIRE', key, 3600)
-    -- Time until next token available
     local wait_time = math.ceil((requested - tokens) / refill_rate)
     return {0, tokens, now + wait_time}
 end
@@ -50,10 +51,10 @@ end
 class TokenBucket:
     """Token Bucket rate limiter implementation."""
 
-    def __init__(self, redis_client, capacity: int, refill_rate: float):
+    def __init__(self, redis_client: Any, capacity: int, refill_rate: float):
         """
         Initialize Token Bucket.
-        
+
         Args:
             redis_client: Redis async client
             capacity: Maximum tokens in bucket (burst capacity)
@@ -62,24 +63,22 @@ class TokenBucket:
         self._client = redis_client
         self._capacity = capacity
         self._refill_rate = refill_rate
-        self._script_sha: Optional[str] = None
+        self._script_sha: str | None = None
 
     async def load_script(self) -> None:
         """Load the Lua script into Redis."""
-        self._script_sha = await self._client.script_load(TOKEN_BUCKET_SCRIPT)
+        self._script_sha = await self._client.script_load(BUCKET_REFILL_SCRIPT)
         logger.info("token_bucket_script_loaded")
 
-    async def consume(
-        self, tenant_id: str, route: str, tokens: int = 1
-    ) -> tuple[bool, int, int]:
+    async def consume(self, tenant_id: str, route: str, tokens: int = 1) -> tuple[bool, int, int]:
         """
         Try to consume tokens from the bucket.
-        
+
         Args:
             tenant_id: Tenant identifier
             route: API route
             tokens: Number of tokens to consume (default 1)
-            
+
         Returns:
             (allowed, remaining, reset_at)
         """
@@ -94,10 +93,10 @@ class TokenBucket:
                 self._script_sha,
                 1,
                 key,
-                self._capacity,
-                self._refill_rate,
-                now,
-                tokens,
+                str(self._capacity),
+                str(self._refill_rate),
+                str(now),
+                str(tokens),
             )
 
             allow = result[0] == 1

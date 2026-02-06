@@ -1,11 +1,11 @@
 """Integration tests for the API endpoints."""
 
-import pytest
-from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, patch
 
+import pytest
+from httpx import ASGITransport, AsyncClient
+
 from throttlex.app import app
-from throttlex.models import Algorithm, Policy, Scope
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ async def client(mock_repository):
         with patch("throttlex.service.get_repository", return_value=mock_repository):
             # Skip actual Redis connection in lifespan
             app.router.lifespan_context = lambda _: _mock_lifespan()
-            
+
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as ac:
                 yield ac

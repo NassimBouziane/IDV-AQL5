@@ -24,7 +24,7 @@ lint:
   image: python:${PYTHON_VERSION}
   script:
     - pip install ruff bandit
-    - cd src
+    - cd ThrottleX_Context_Kit/src
     - ruff check throttlex tests
     - ruff format --check throttlex tests
   rules:
@@ -40,7 +40,7 @@ test:unit:
   variables:
     THROTTLEX_REDIS_HOST: redis
   script:
-    - cd src
+    - cd ThrottleX_Context_Kit/src
     - pip install -e ".[dev]"
     - export PYTHONPATH=$PWD
     - pytest tests/unit -v --cov=throttlex --cov-report=xml --cov-report=term-missing --cov-fail-under=50
@@ -49,7 +49,7 @@ test:unit:
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: src/coverage.xml
+        path: ThrottleX_Context_Kit/src/coverage.xml
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -63,7 +63,7 @@ test:integration:
   variables:
     THROTTLEX_REDIS_HOST: redis
   script:
-    - cd src
+    - cd ThrottleX_Context_Kit/src
     - pip install -e ".[dev]"
     - export PYTHONPATH=$PWD
     - pytest tests/integration -v
@@ -75,7 +75,7 @@ test:properties:
   stage: test
   image: python:${PYTHON_VERSION}
   script:
-    - cd src
+    - cd ThrottleX_Context_Kit/src
     - pip install -e ".[dev]"
     - export PYTHONPATH=$PWD
     - pytest tests/test_properties.py -v
@@ -89,12 +89,12 @@ sast:
   image: python:${PYTHON_VERSION}
   script:
     - pip install bandit
-    - cd src
+    - cd ThrottleX_Context_Kit/src
     - bandit -r throttlex -f json -o bandit-report.json || true
     - bandit -r throttlex --severity-level medium
   artifacts:
     paths:
-      - src/bandit-report.json
+      - ThrottleX_Context_Kit/src/bandit-report.json
     expire_in: 1 month
   allow_failure: false
   rules:
@@ -105,13 +105,13 @@ sca:
   image: python:${PYTHON_VERSION}
   script:
     - pip install safety pip-audit
-    - cd src
+    - cd ThrottleX_Context_Kit/src
     - pip install -e .
     - pip-audit --format json --output pip-audit.json || true
     - pip-audit
   artifacts:
     paths:
-      - src/pip-audit.json
+      - ThrottleX_Context_Kit/src/pip-audit.json
     expire_in: 1 month
   allow_failure: true
   rules:
@@ -124,7 +124,7 @@ build:docker:
   services:
     - docker:24-dind
   script:
-    - cd src
+    - cd ThrottleX_Context_Kit/src
     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
   rules:
@@ -135,9 +135,9 @@ sbom:
   image: python:${PYTHON_VERSION}
   script:
     - pip install cyclonedx-bom
-    - cd src
+    - cd ThrottleX_Context_Kit/src
     - pip install -e .
-    - cyclonedx-py environment -o ../sbom.json --format json
+    - cyclonedx-py environment -o ../../sbom.json --format json
   artifacts:
     paths:
       - sbom.json

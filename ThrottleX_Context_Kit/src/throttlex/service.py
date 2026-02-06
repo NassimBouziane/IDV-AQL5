@@ -1,12 +1,10 @@
 """Rate limiting service."""
 
-from typing import Optional
-
 import structlog
 
 from throttlex.config import get_settings
 from throttlex.metrics import metrics
-from throttlex.models import Algorithm, EvaluateRequest, EvaluateResponse, Policy
+from throttlex.models import Algorithm, EvaluateRequest, EvaluateResponse, Policy, Scope
 from throttlex.repository import RedisRepository, get_repository
 
 logger = structlog.get_logger()
@@ -15,14 +13,16 @@ logger = structlog.get_logger()
 class RateLimiterService:
     """Service for rate limiting operations."""
 
-    def __init__(self, repository: Optional[RedisRepository] = None) -> None:
+    def __init__(self, repository: RedisRepository | None = None) -> None:
         self._repository = repository or get_repository()
         self._settings = get_settings()
 
     async def create_policy(self, policy: Policy) -> Policy:
         """Create or update a policy."""
         saved = await self._repository.save_policy(policy)
-        metrics.policies_total.labels(tenant_id=policy.tenant_id, algorithm=policy.algorithm.value).inc()
+        metrics.policies_total.labels(
+            tenant_id=policy.tenant_id, algorithm=policy.algorithm.value
+        ).inc()
         logger.info(
             "policy_created",
             tenant_id=policy.tenant_id,
@@ -36,14 +36,14 @@ class RateLimiterService:
         """Get all policies for a tenant."""
         return await self._repository.get_policies(tenant_id)
 
-    async def delete_policy(self, tenant_id: str, route: Optional[str] = None) -> bool:
+    async def delete_policy(self, tenant_id: str, route: str | None = None) -> bool:
         """Delete a policy."""
         return await self._repository.delete_policy(tenant_id, route)
 
     async def evaluate(self, request: EvaluateRequest) -> tuple[EvaluateResponse, dict[str, int]]:
         """
         Evaluate if a request should be allowed.
-        
+
         Returns: (response, headers_dict)
         """
         # Find matching policy
@@ -60,11 +60,12 @@ class RateLimiterService:
             policy = Policy(
                 tenantId=request.tenant_id,
                 route=request.route,
-                scope="TENANT_ROUTE",
-                algorithm=self._settings.default_algorithm,
+                scope=Scope.TENANT_ROUTE,
+                algorithm=Algorithm(self._settings.default_algorithm),
                 limit=self._settings.default_limit,
                 windowSeconds=self._settings.default_window_seconds,
                 burst=0,
+                ttlSeconds=None,
             )
 
         # Evaluate based on algorithm
@@ -120,7 +121,7 @@ class RateLimiterService:
 
 
 # Singleton instance
-_service: Optional[RateLimiterService] = None
+_service: RateLimiterService | None = None
 
 
 def get_service() -> RateLimiterService:

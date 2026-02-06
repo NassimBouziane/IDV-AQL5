@@ -1,7 +1,8 @@
 """Unit tests for the rate limiter service."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from throttlex.models import Algorithm, EvaluateRequest, Policy, Scope
 from throttlex.service import RateLimiterService

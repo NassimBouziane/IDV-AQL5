@@ -1,6 +1,7 @@
 """FastAPI application for ThrottleX."""
 
 import time
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -10,7 +11,6 @@ from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from throttlex import __version__
-from throttlex.config import get_settings
 from throttlex.logging import setup_logging
 from throttlex.metrics import metrics
 from throttlex.models import EvaluateRequest, EvaluateResponse, Policy
@@ -21,7 +21,7 @@ logger = structlog.get_logger()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan manager."""
     # Startup
     setup_logging()
@@ -53,11 +53,11 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def metrics_middleware(request: Request, call_next) -> Response:
+async def metrics_middleware(request: Request, call_next: Callable[[Request], Any]) -> Response:
     """Record HTTP metrics for each request."""
     start_time = time.perf_counter()
 
-    response = await call_next(request)
+    response: Response = await call_next(request)
 
     duration = time.perf_counter() - start_time
     endpoint = request.url.path

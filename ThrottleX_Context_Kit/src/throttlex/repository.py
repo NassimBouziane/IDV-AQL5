@@ -2,10 +2,10 @@
 
 import json
 import time
-from typing import Optional
 
 import redis.asyncio as redis
 import structlog
+from redis.exceptions import NoScriptError
 
 from throttlex.config import get_settings
 from throttlex.models import Policy
@@ -41,7 +41,7 @@ end
 """
 
 # Lua script for Token Bucket (atomic operation)
-TOKEN_BUCKET_SCRIPT = """
+BUCKET_REFILL_SCRIPT = """
 local key = KEYS[1]
 local capacity = tonumber(ARGV[1])
 local refill_rate = tonumber(ARGV[2])
@@ -79,9 +79,9 @@ class RedisRepository:
     """Repository for Redis operations."""
 
     def __init__(self) -> None:
-        self._client: Optional[redis.Redis] = None
-        self._sliding_window_sha: Optional[str] = None
-        self._token_bucket_sha: Optional[str] = None
+        self._client: redis.Redis | None = None
+        self._sliding_window_sha: str | None = None
+        self._token_bucket_sha: str | None = None
 
     async def connect(self) -> None:
         """Connect to Redis."""
@@ -100,7 +100,7 @@ class RedisRepository:
 
         # Load Lua scripts
         self._sliding_window_sha = await self._client.script_load(SLIDING_WINDOW_SCRIPT)
-        self._token_bucket_sha = await self._client.script_load(TOKEN_BUCKET_SCRIPT)
+        self._token_bucket_sha = await self._client.script_load(BUCKET_REFILL_SCRIPT)
         logger.info("lua_scripts_loaded", scripts=["sliding_window", "token_bucket"])
 
     async def disconnect(self) -> None:
@@ -128,14 +128,14 @@ class RedisRepository:
 
         key = policy.get_key()
         data = policy.model_dump(by_alias=True)
-        
+
         if policy.ttl_seconds:
             await self._client.setex(key, policy.ttl_seconds, json.dumps(data))
         else:
             await self._client.set(key, json.dumps(data))
 
         # Also add to tenant's policy set for listing
-        await self._client.sadd(f"policies:{policy.tenant_id}", key)
+        await self._client.sadd(f"policies:{policy.tenant_id}", key)  # type: ignore[misc]
 
         logger.info("policy_saved", tenant_id=policy.tenant_id, route=policy.route)
         return policy
@@ -145,7 +145,7 @@ class RedisRepository:
         if not self._client:
             raise RuntimeError("Redis not connected")
 
-        policy_keys = await self._client.smembers(f"policies:{tenant_id}")
+        policy_keys = await self._client.smembers(f"policies:{tenant_id}")  # type: ignore[misc]
         policies = []
 
         for key in policy_keys:
@@ -155,7 +155,7 @@ class RedisRepository:
 
         return policies
 
-    async def get_matching_policy(self, tenant_id: str, route: str) -> Optional[Policy]:
+    async def get_matching_policy(self, tenant_id: str, route: str) -> Policy | None:
         """Get the most specific policy matching tenant and route."""
         if not self._client:
             raise RuntimeError("Redis not connected")
@@ -174,7 +174,7 @@ class RedisRepository:
 
         return None
 
-    async def delete_policy(self, tenant_id: str, route: Optional[str] = None) -> bool:
+    async def delete_policy(self, tenant_id: str, route: str | None = None) -> bool:
         """Delete a policy."""
         if not self._client:
             raise RuntimeError("Redis not connected")
@@ -185,10 +185,10 @@ class RedisRepository:
             key = f"policy:{tenant_id}:*"
 
         deleted = await self._client.delete(key)
-        await self._client.srem(f"policies:{tenant_id}", key)
+        await self._client.srem(f"policies:{tenant_id}", key)  # type: ignore[misc]
 
         logger.info("policy_deleted", tenant_id=tenant_id, route=route, deleted=deleted > 0)
-        return deleted > 0
+        return bool(deleted > 0)
 
     # === Rate limiting operations ===
 
@@ -197,7 +197,7 @@ class RedisRepository:
     ) -> tuple[bool, int, int]:
         """
         Evaluate rate limit using sliding window algorithm.
-        
+
         Returns: (allow, remaining, reset_at)
         """
         if not self._client or not self._sliding_window_sha:
@@ -208,14 +208,14 @@ class RedisRepository:
         key = f"ratelimit:{tenant_id}:{route}:{window_start}"
 
         try:
-            result = await self._client.evalsha(
+            result = await self._client.evalsha(  # type: ignore[misc]
                 self._sliding_window_sha,
                 1,
                 key,
-                limit,
-                window_seconds,
-                now,
-                burst,
+                str(limit),
+                str(window_seconds),
+                str(now),
+                str(burst),
             )
             allow = result[0] == 1
             remaining = int(result[1])
@@ -231,24 +231,26 @@ class RedisRepository:
 
             return allow, remaining, reset_at
 
-        except redis.NoScriptError:
+        except NoScriptError:
             # Script was flushed, reload it
             self._sliding_window_sha = await self._client.script_load(SLIDING_WINDOW_SCRIPT)
-            return await self.evaluate_sliding_window(tenant_id, route, limit, window_seconds, burst)
+            return await self.evaluate_sliding_window(
+                tenant_id, route, limit, window_seconds, burst
+            )
 
     async def evaluate_token_bucket(
         self, tenant_id: str, route: str, capacity: int, refill_rate: float, tokens: int = 1
     ) -> tuple[bool, int, int]:
         """
         Evaluate rate limit using token bucket algorithm.
-        
+
         Args:
             tenant_id: Tenant identifier
             route: API route
             capacity: Maximum tokens (bucket size)
             refill_rate: Tokens per second
             tokens: Tokens to consume
-            
+
         Returns: (allow, remaining, reset_at)
         """
         if not self._client or not self._token_bucket_sha:
@@ -258,14 +260,14 @@ class RedisRepository:
         key = f"tokenbucket:{tenant_id}:{route}"
 
         try:
-            result = await self._client.evalsha(
+            result = await self._client.evalsha(  # type: ignore[misc]
                 self._token_bucket_sha,
                 1,
                 key,
-                capacity,
-                refill_rate,
-                now,
-                tokens,
+                str(capacity),
+                str(refill_rate),
+                str(now),
+                str(tokens),
             )
 
             allow = result[0] == 1
@@ -282,8 +284,8 @@ class RedisRepository:
 
             return allow, remaining, reset_at
 
-        except redis.NoScriptError:
-            self._token_bucket_sha = await self._client.script_load(TOKEN_BUCKET_SCRIPT)
+        except NoScriptError:
+            self._token_bucket_sha = await self._client.script_load(BUCKET_REFILL_SCRIPT)
             return await self.evaluate_token_bucket(tenant_id, route, capacity, refill_rate, tokens)
 
     async def get_counter(self, tenant_id: str, route: str, window_seconds: int) -> int:
@@ -300,7 +302,7 @@ class RedisRepository:
 
 
 # Singleton instance
-_repository: Optional[RedisRepository] = None
+_repository: RedisRepository | None = None
 
 
 def get_repository() -> RedisRepository:

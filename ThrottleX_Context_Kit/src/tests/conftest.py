@@ -1,9 +1,7 @@
 """Pytest configuration and fixtures."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock
-
 import fakeredis.aioredis
+import pytest
 
 
 @pytest.fixture

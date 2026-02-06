@@ -1,14 +1,17 @@
 """Configuration settings for ThrottleX."""
 
 from functools import lru_cache
-from pydantic_settings import BaseSettings
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
+    model_config = SettingsConfigDict(env_prefix="THROTTLEX_", env_file=".env")
+
     # Server
-    host: str = "0.0.0.0"
+    host: str = "127.0.0.1"  # Use THROTTLEX_HOST=0.0.0.0 for Docker
     port: int = 8080
     debug: bool = False
 
@@ -31,10 +34,6 @@ class Settings(BaseSettings):
     # Metrics
     metrics_enabled: bool = True
     metrics_port: int = 9090
-
-    class Config:
-        env_prefix = "THROTTLEX_"
-        env_file = ".env"
 
 
 @lru_cache

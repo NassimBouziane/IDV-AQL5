@@ -73,7 +73,7 @@ jobs:
       - name: Run unit tests
         working-directory: ThrottleX_Context_Kit/src
         run: |
-          pytest tests/unit -v --cov=throttlex --cov-report=xml --cov-report=term-missing
+          pytest tests/unit -v --cov=throttlex --cov-report=xml --cov-report=term-missing --cov-fail-under=50
 
       - name: Run integration tests
         working-directory: ThrottleX_Context_Kit/src

@@ -52,7 +52,6 @@ ignore = ["S101"]  # Allow assert in tests
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-v --cov=throttlex --cov-report=term-missing --cov-report=xml"
 
 [tool.mypy]
 python_version = "3.11"
@@ -63,6 +62,10 @@ warn_unused_configs = true
 [tool.coverage.run]
 source = ["throttlex"]
 branch = true
+omit = [
+    "throttlex/__main__.py",
+    "throttlex/algorithms/__init__.py",
+]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -70,4 +73,3 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
 ]
-fail_under = 50

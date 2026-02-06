@@ -4,7 +4,8 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from throttlex.models import Algorithm, Policy, Scope
 from throttlex.service import RateLimiterService
@@ -21,11 +22,10 @@ class TestRateLimitingProperties:
     def test_never_exceeds_limit_sliding_window(self, limit: int, window: int):
         """
         Property: Never authorize more than limit requests in a window.
-        
+
         For any limit N, if we make N+10 requests, at most N should be allowed.
         """
         # Setup
-        call_count = 0
         allowed_count = 0
         current_count = 0
 
@@ -120,7 +120,11 @@ class TestRateLimitingProperties:
             f"Allowed {allowed_count} but effective limit is {effective_limit}"
         )
 
-    @given(tenant_id=st.text(min_size=1, max_size=50, alphabet=st.characters(whitelist_categories=("L", "N"))))
+    @given(
+        tenant_id=st.text(
+            min_size=1, max_size=50, alphabet=st.characters(whitelist_categories=("L", "N"))
+        )
+    )
     @settings(max_examples=20)
     def test_tenant_isolation(self, tenant_id: str):
         """
@@ -234,7 +238,7 @@ class TestConcurrencySafety:
     async def test_concurrent_requests_respect_limit(self):
         """
         Property: Even with concurrent requests, limit should be respected.
-        
+
         This simulates the atomic behavior of Lua scripts.
         """
         import asyncio
