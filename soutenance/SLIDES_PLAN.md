@@ -112,7 +112,7 @@
 ## Slide 11 : Sécurité (SBOM + SAST)
 - **SBOM** : Software Bill of Materials
   - Liste des dépendances avec versions
-  - Généré via `pip-licenses` ou `cyclonedx-bom`
+  - Généré via `cyclonedx-bom`
 - **SAST** : Analyse statique (Bandit)
   - 0 vulnérabilités détectées
   - Règles : hardcoded passwords, injection, etc.
@@ -185,5 +185,5 @@ pytest tests/unit -v --cov=throttlex
 4. Revert et montrer la CI verte
 
 ### Scénario 3 : Benchmark
-1. Lancer `k6 run throttlex_load_test.js`
+1. Lancer `k6 run .\tests\k6\throttlex_load_test.js`
 2. Montrer les résultats en temps réel
