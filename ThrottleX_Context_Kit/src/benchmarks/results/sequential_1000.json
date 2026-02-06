@@ -1,0 +1,20 @@
+{
+  "sequential": {
+    "total_requests": 1000,
+    "successful_requests": 1000,
+    "failed_requests": 0,
+    "allowed_requests": 1000,
+    "blocked_requests": 0,
+    "total_duration_seconds": 4.022,
+    "throughput_rps": 248.64,
+    "latency_ms": {
+      "mean": 4.01,
+      "stdev": 0.73,
+      "p50": 3.86,
+      "p95": 4.95,
+      "p99": 6.28,
+      "min": 3.17,
+      "max": 17.98
+    }
+  }
+}

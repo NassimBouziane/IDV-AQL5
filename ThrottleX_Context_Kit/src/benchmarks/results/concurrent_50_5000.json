@@ -1,0 +1,20 @@
+{
+  "concurrent": {
+    "total_requests": 5000,
+    "successful_requests": 5000,
+    "failed_requests": 0,
+    "allowed_requests": 5000,
+    "blocked_requests": 0,
+    "total_duration_seconds": 27.294,
+    "throughput_rps": 183.19,
+    "latency_ms": {
+      "mean": 272.08,
+      "stdev": 283.99,
+      "p50": 173.26,
+      "p95": 812.47,
+      "p99": 1322.91,
+      "min": 3.61,
+      "max": 3203.72
+    }
+  }
+}
