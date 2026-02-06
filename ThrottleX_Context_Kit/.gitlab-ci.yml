@@ -1,0 +1,158 @@
+# GitLab CI/CD for ThrottleX
+# Quality gates bloquantes
+
+stages:
+  - lint
+  - test
+  - security
+  - build
+  - release
+
+variables:
+  PYTHON_VERSION: "3.11"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+
+cache:
+  key: $CI_COMMIT_REF_SLUG
+  paths:
+    - .pip-cache/
+    - .venv/
+
+# ============= LINT =============
+lint:
+  stage: lint
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install ruff bandit
+    - cd src
+    - ruff check throttlex tests
+    - ruff format --check throttlex tests
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ============= TEST =============
+test:unit:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  services:
+    - redis:7-alpine
+  variables:
+    THROTTLEX_REDIS_HOST: redis
+  script:
+    - cd src
+    - pip install -e ".[dev]"
+    - export PYTHONPATH=$PWD
+    - pytest tests/unit -v --cov=throttlex --cov-report=xml --cov-report=term-missing --cov-fail-under=50
+  coverage: '/Total coverage: \d+\.\d+%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: src/coverage.xml
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+test:integration:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  services:
+    - redis:7-alpine
+  variables:
+    THROTTLEX_REDIS_HOST: redis
+  script:
+    - cd src
+    - pip install -e ".[dev]"
+    - export PYTHONPATH=$PWD
+    - pytest tests/integration -v
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+test:properties:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  script:
+    - cd src
+    - pip install -e ".[dev]"
+    - export PYTHONPATH=$PWD
+    - pytest tests/test_properties.py -v
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ============= SECURITY =============
+sast:
+  stage: security
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install bandit
+    - cd src
+    - bandit -r throttlex -f json -o bandit-report.json || true
+    - bandit -r throttlex --severity-level medium
+  artifacts:
+    paths:
+      - src/bandit-report.json
+    expire_in: 1 month
+  allow_failure: false
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+sca:
+  stage: security
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install safety pip-audit
+    - cd src
+    - pip install -e .
+    - pip-audit --format json --output pip-audit.json || true
+    - pip-audit
+  artifacts:
+    paths:
+      - src/pip-audit.json
+    expire_in: 1 month
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ============= BUILD =============
+build:docker:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  script:
+    - cd src
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+sbom:
+  stage: build
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install cyclonedx-bom
+    - cd src
+    - pip install -e .
+    - cyclonedx-py environment -o ../sbom.json --format json
+  artifacts:
+    paths:
+      - sbom.json
+    expire_in: 1 year
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ============= RELEASE =============
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  script:
+    - echo "Creating release $CI_COMMIT_TAG"
+  release:
+    tag_name: $CI_COMMIT_TAG
+    description: "Release $CI_COMMIT_TAG"
+  rules:
+    - if: $CI_COMMIT_TAG

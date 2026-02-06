@@ -1,0 +1,4 @@
+# file: C:\Users\bouzi\Desktop\Ecole\Master_2\IDV‑AQL5\ThrottleX_Context_Kit\src\throttlex\repository.py
+# hypothesis_version: 6.151.5
+
+['Redis not connected', 'lua_scripts_loaded', 'policy_deleted', 'policy_saved', 'rate_limit_evaluated', 'redis_connected', 'redis_disconnected', 'sliding_window', 'token_bucket']

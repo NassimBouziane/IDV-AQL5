@@ -1,0 +1,4 @@
+# file: C:\Users\bouzi\Desktop\Ecole\Master_2\IDV‑AQL5\ThrottleX_Context_Kit\src\throttlex\metrics.py
+# hypothesis_version: 6.151.5
+
+[0.0005, 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, '0.1.0', 'Total HTTP requests', 'algorithm', 'endpoint', 'method', 'operation', 'result', 'route', 'sliding_window', 'status', 'tenant_id', 'throttlex', 'version']

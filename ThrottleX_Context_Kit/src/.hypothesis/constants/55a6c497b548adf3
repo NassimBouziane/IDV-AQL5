@@ -1,0 +1,4 @@
+# file: C:\Users\bouzi\Desktop\Ecole\Master_2\IDV‑AQL5\ThrottleX_Context_Kit\src\throttlex\models.py
+# hypothesis_version: 6.151.5
+
+[255, 500, 'SLIDING_WINDOW', 'TENANT', 'TENANT_ROUTE', 'TOKEN_BUCKET', 'resetAt', 'tenantId', 'ttlSeconds', 'windowSeconds']

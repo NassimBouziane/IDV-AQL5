@@ -1,0 +1,30 @@
+{
+  "tiers": {
+    "FREE": {
+      "limitPerMinute": 60,
+      "burst": 20
+    },
+    "PRO": {
+      "limitPerMinute": 600,
+      "burst": 100
+    },
+    "ENTERPRISE": {
+      "limitPerMinute": 3000,
+      "burst": 600
+    }
+  },
+  "tenants": [
+    {
+      "tenantId": "t-free-01",
+      "tier": "FREE"
+    },
+    {
+      "tenantId": "t-pro-01",
+      "tier": "PRO"
+    },
+    {
+      "tenantId": "t-ent-01",
+      "tier": "ENTERPRISE"
+    }
+  ]
+}

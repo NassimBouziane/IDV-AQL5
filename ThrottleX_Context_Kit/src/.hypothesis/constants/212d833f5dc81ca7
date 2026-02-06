@@ -1,0 +1,4 @@
+# file: C:\Users\bouzi\Desktop\Ecole\Master_2\IDV‑AQL5\ThrottleX_Context_Kit\src\throttlex\service.py
+# hypothesis_version: 6.151.5
+
+['TENANT_ROUTE', 'X-RateLimit-Limit', 'X-RateLimit-Reset', 'allowed', 'blocked', 'no_policy_found', 'policy_created', 'request_evaluated']

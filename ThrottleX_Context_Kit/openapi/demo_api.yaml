@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: Inference Demo API (Mock)
+  version: 0.1.0
+servers:
+  - url: http://localhost:9090
+paths:
+  /inference/text:
+    post:
+      summary: Submit a text prompt and receive a (mocked) completion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tenantId: { type: string }
+                prompt: { type: string }
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+            X-RateLimit-Reset:
+              schema: { type: integer, format: int64 }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: { type: string }
+                  durationMs: { type: integer }

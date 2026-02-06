@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: ThrottleX Rate Limiter API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /policies:
+    post:
+      summary: Create or replace a policy for a tenant (optional per-route)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+  /policies/{tenantId}:
+    get:
+      summary: Get policies for a tenant
+      parameters:
+        - in: path
+          name: tenantId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Policy' }
+  /evaluate:
+    post:
+      summary: Evaluate if a request is allowed for a tenant/route at current time
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRequest'
+      responses:
+        '200':
+          description: Result
+          headers:
+            X-RateLimit-Limit:
+              description: Total requests allowed in the current window
+              schema: { type: integer }
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window
+              schema: { type: integer }
+            X-RateLimit-Reset:
+              description: Unix timestamp for window reset
+              schema: { type: integer, format: int64 }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluateResponse'
+components:
+  schemas:
+    Policy:
+      type: object
+      required: [tenantId, scope, algorithm, limit, windowSeconds]
+      properties:
+        tenantId: { type: string }
+        route: { type: string, nullable: true, description: 'Optional; if null, applies to all routes' }
+        scope:
+          type: string
+          enum: [TENANT, TENANT_ROUTE]
+        algorithm:
+          type: string
+          enum: [SLIDING_WINDOW, TOKEN_BUCKET]
+        limit:
+          type: integer
+          minimum: 1
+        windowSeconds:
+          type: integer
+          minimum: 1
+        burst:
+          type: integer
+          minimum: 0
+          default: 0
+        ttlSeconds:
+          type: integer
+          nullable: true
+          description: Optional TTL for policy auto-expiration
+    EvaluateRequest:
+      type: object
+      required: [tenantId, route]
+      properties:
+        tenantId: { type: string }
+        route: { type: string }
+    EvaluateResponse:
+      type: object
+      required: [allow]
+      properties:
+        allow: { type: boolean }
+        remaining: { type: integer, nullable: true }
+        resetAt: { type: integer, format: int64, nullable: true }

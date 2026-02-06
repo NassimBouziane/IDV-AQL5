@@ -1,0 +1,78 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-02-06T12:00:00Z",
+    "component": {
+      "type": "application",
+      "name": "throttlex",
+      "version": "0.1.0",
+      "description": "Multi-tenant API Rate Limiting Service"
+    },
+    "tools": [
+      {
+        "name": "cyclonedx-bom",
+        "version": "3.11.0"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "fastapi",
+      "version": "0.109.0",
+      "purl": "pkg:pypi/fastapi@0.109.0",
+      "licenses": [{"license": {"id": "MIT"}}]
+    },
+    {
+      "type": "library",
+      "name": "uvicorn",
+      "version": "0.27.0",
+      "purl": "pkg:pypi/uvicorn@0.27.0",
+      "licenses": [{"license": {"id": "BSD-3-Clause"}}]
+    },
+    {
+      "type": "library",
+      "name": "redis",
+      "version": "5.0.0",
+      "purl": "pkg:pypi/redis@5.0.0",
+      "licenses": [{"license": {"id": "MIT"}}]
+    },
+    {
+      "type": "library",
+      "name": "pydantic",
+      "version": "2.5.0",
+      "purl": "pkg:pypi/pydantic@2.5.0",
+      "licenses": [{"license": {"id": "MIT"}}]
+    },
+    {
+      "type": "library",
+      "name": "pydantic-settings",
+      "version": "2.1.0",
+      "purl": "pkg:pypi/pydantic-settings@2.1.0",
+      "licenses": [{"license": {"id": "MIT"}}]
+    },
+    {
+      "type": "library",
+      "name": "prometheus-client",
+      "version": "0.19.0",
+      "purl": "pkg:pypi/prometheus-client@0.19.0",
+      "licenses": [{"license": {"id": "Apache-2.0"}}]
+    },
+    {
+      "type": "library",
+      "name": "structlog",
+      "version": "24.1.0",
+      "purl": "pkg:pypi/structlog@24.1.0",
+      "licenses": [{"license": {"id": "MIT"}}]
+    },
+    {
+      "type": "library",
+      "name": "httpx",
+      "version": "0.26.0",
+      "purl": "pkg:pypi/httpx@0.26.0",
+      "licenses": [{"license": {"id": "BSD-3-Clause"}}]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# file: C:\Users\bouzi\Desktop\Ecole\Master_2\IDV‑AQL5\ThrottleX_Context_Kit\src\throttlex\config.py
+# hypothesis_version: 6.151.5
+
+[100, 6379, 8080, 9090, '.env', '0.0.0.0', 'INFO', 'SLIDING_WINDOW', 'THROTTLEX_', 'json', 'localhost']

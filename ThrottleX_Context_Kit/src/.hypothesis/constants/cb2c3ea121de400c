@@ -1,0 +1,4 @@
+# file: C:\Users\bouzi\Desktop\Ecole\Master_2\IDV‑AQL5\ThrottleX_Context_Kit\src\throttlex\app.py
+# hypothesis_version: 6.151.5
+
+[200, 201, 204, 404, 429, 500, 503, '/evaluate', '/health', '/metrics', '/policies', '/ready', 'Health', 'Observability', 'Policies', 'Policy not found', 'Rate Limiting', 'Redis not available', 'checks', 'degraded', 'detail', 'error', 'healthy', 'http', 'ok', 'ready', 'redis', 'status', 'throttlex_starting', 'throttlex_stopped', 'unhandled_exception', 'version']
